@@ -25,7 +25,14 @@ Project template for Python CLI tools with standardized tooling.
 - **ruff** for linting and formatting (line-length: 100)
 - **basedpyright** strict mode for type checking
 - **pytest** with 80% coverage requirement
-- **GitHub Actions CI** on push/PR to main
+- **GitHub Actions CI** on push/PR to main, with actions pinned to
+  full-length commit SHAs (the repo setting *Require actions to be
+  pinned to a full-length commit SHA* is enabled)
+
+> **Note:** CI is red on this template repo itself — the `$project`
+> placeholder in `pyproject.toml` makes the project name malformed on
+> purpose. Once you fork and do the search/replace described above, CI
+> turns green.
 
 ## Project Structure
 
