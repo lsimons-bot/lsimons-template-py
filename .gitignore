@@ -72,3 +72,6 @@ env/
 .Spotlight-V100
 .Trashes
 ehthumbs.
+
+# Claude
+.claude/settings.local.json
