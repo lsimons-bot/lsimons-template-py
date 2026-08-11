@@ -47,6 +47,10 @@ coverage.xml
 .pytest_cache/
 cover/
 
+# Tool caches
+.ruff_cache/
+.basedpyright/
+
 # Virtual environments
 .venv/
 venv/
@@ -57,6 +61,11 @@ env/
 .python-version
 .env
 .env.*
+
+# mise local overrides (the committed .mise.toml is the shared config)
+.mise.local.toml
+mise.local.toml
+.mise/
 
 # IDEs and editors
 .vscode/

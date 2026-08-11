@@ -1,5 +1,6 @@
 [build-system]
-requires = ["setuptools>=45", "wheel"]
+# >=77 for PEP 639 SPDX `license` / `license-files` support.
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -8,10 +9,16 @@ version = "0.1.0"
 description = "Brief project description"
 readme = "README.md"
 requires-python = ">=3.14"
+license = "Apache-2.0"
+license-files = ["LICENSE.md"]
 dependencies = []
 authors = [
     { name = "lsimons" }
 ]
+
+[project.urls]
+Homepage = "https://github.com/lsimons/lsimons-template-py"
+Issues = "https://github.com/lsimons/lsimons-template-py/issues"
 
 [project.scripts]
 # template = "template.cli:main"
@@ -25,7 +32,10 @@ line-length = 100
 target-version = "py314"
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "W", "UP", "B", "SIM"]
+# E/W pycodestyle, F pyflakes, I isort, N pep8-naming, UP pyupgrade,
+# B bugbear, C4 comprehensions, SIM simplify, PTH pathlib,
+# RUF ruff-specific.
+select = ["E", "F", "I", "W", "N", "UP", "B", "C4", "SIM", "PTH", "RUF"]
 
 [tool.basedpyright]
 pythonVersion = "3.14"
@@ -44,7 +54,10 @@ dev = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
-addopts = "-v --cov=template --cov-report=term-missing --cov-fail-under=80"
+# --strict-markers/-config turn typos in markers and in this table into
+# errors; xfail_strict fails a test that was expected to fail but passed.
+addopts = "-v --strict-markers --strict-config --cov=template --cov-report=term-missing --cov-fail-under=80"
+xfail_strict = true
 
 [tool.uv]
 exclude-newer = "1 week"
