@@ -1,6 +1,8 @@
 version: 2
 updates:
-  - package-ecosystem: "pip"
+  # "uv" is the ecosystem that understands uv.lock; "pip" reads only
+  # pyproject.toml and would leave the lock file stale.
+  - package-ecosystem: "uv"
     directory: "/"
     schedule:
       interval: "weekly"

@@ -10,8 +10,14 @@ on:
 permissions:
   contents: read
 
+# Supersede in-flight runs for the same branch/PR; never cancel main.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
 jobs:
   lint-and-test:
+    name: Lint and test
     runs-on: ubuntu-latest
 
     steps:
