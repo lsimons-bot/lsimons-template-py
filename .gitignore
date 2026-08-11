@@ -49,7 +49,6 @@ cover/
 
 # Tool caches
 .ruff_cache/
-.basedpyright/
 
 # Virtual environments
 .venv/
