@@ -15,16 +15,15 @@ Every repo task lives in `.mise.toml`; `mise tasks` lists them.
 
 | Task                 | What it does                                          |
 | -------------------- | ----------------------------------------------------- |
-| `mise install`       | Install the pinned toolchain (python, uv)             |
+| `mise install`       | Install the pinned toolchain                          |
 | `mise run init`      | Rename the `template` placeholder to the project name |
 | `mise run install`   | `uv sync --all-groups`                                |
-| `mise run lint`      | `ruff check` + `ruff format --check`                  |
+| `mise run lint`      | `ruff check` + `ruff format --check` + `actionlint`   |
 | `mise run format`    | `ruff format` + `ruff check --fix`                    |
 | `mise run typecheck` | `basedpyright` (strict)                               |
 | `mise run test`      | `pytest` with coverage                                |
 | `mise run ci`        | Full gate: lint + typecheck + test                    |
 | `mise run audit`     | `zizmor` audit of workflows + dependabot config       |
-| `mise run labels`    | Create/refresh the triage labels on the GitHub remote |
 | `mise run ci-watch`  | Watch GitHub Actions for the current branch           |
 
 ## Structure
@@ -37,7 +36,6 @@ pyproject.toml            Package metadata, ruff, basedpyright, pytest config
 scripts/init.py           Rename-to-your-project helper (`mise run init`)
 src/template/             Placeholder package (renamed by `mise run init`)
 tests/                    pytest suite
-docs/agents/              Agent-facing process docs (issue tracker)
 docs/spec/                Feature specifications
 ```
 
@@ -57,50 +55,14 @@ docs/spec/                Feature specifications
 - Never weaken a control to make a check pass: do not lower the
   coverage floor, unpin an action, or delete a failing test.
 
-**Supply chain — enforced by files in this repo:**
+**Supply chain:**
 
 - `uv.lock` is committed and must stay in the tree.
 - GitHub Actions are pinned to full-length commit SHAs with a `# vX.Y.Z`
   comment, and `zizmor` enforces that in CI.
-- Tool versions in `.mise.toml` are pinned and are **not** covered by
-  dependabot; refresh them deliberately with `mise up`.
-
-**Supply chain — repo settings, which this repo cannot enforce:**
-
-`Use this template` copies files, not settings. Do not assume any of
-these is on; check, and see the checklist in
-[README.md](README.md#per-repo-settings). Verify with `gh api` rather
-than trusting this file:
-
-- *Require actions to be pinned to a full-length commit SHA* must be
-  enabled — `gh api repos/{owner}/{repo}/actions/permissions`.
-- Private vulnerability reporting must be enabled, because
-  [SECURITY.md](SECURITY.md) directs reporters to it — `gh api
-  repos/{owner}/{repo}/private-vulnerability-reporting`.
-- Dependabot security updates must be enabled — `gh api
-  repos/{owner}/{repo}/automated-security-fixes`.
-
-## Agent skills
-
-### Git remote
-
-Use GitHub with the `gh` CLI. `origin` is the upstream repo. Remotes are
-clone-local and are not copied by `Use this template`, so read
-`git remote -v` rather than assuming: some clones also carry a `bot`
-remote pointing at a fork used for bot-authored pull requests.
-
-### Issue tracker
-
-Use GitHub issues via `gh issue`. See [docs/agents/issue-tracker.md](docs/agents/issue-tracker.md).
-
-### Triage labels
-
-Use `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human` and
-`wontfix`, alongside `bug`, `documentation` and `enhancement`. See
-[docs/agents/issue-tracker.md](docs/agents/issue-tracker.md). Labels are
-repo state, not repo content: check `gh label list` and run
-`mise run labels` if any are missing. At the time of writing they are
-missing on `lsimons/lsimons-template-py` itself.
+- Every tool in `.mise.toml` is pinned to an exact version, python
+  included. Nothing here is covered by dependabot, so refresh it
+  deliberately with `mise up` and read the diff.
 
 ## Commit Message Convention
 
