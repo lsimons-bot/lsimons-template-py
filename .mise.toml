@@ -4,13 +4,27 @@
 # dispatches to uv. `pyproject.toml`'s `requires-python` remains
 # authoritative — mise reads it.
 
-# Tool versions are pinned. `python` is pinned to the minor series so
-# CPython patch releases (which are security fixes) are picked up
-# automatically; `uv` is pinned exactly. Neither is covered by
-# dependabot — refresh them deliberately with `mise up`.
+# Every tool is pinned to an exact version, deliberately and without
+# exception — including python. This is a supply-chain rule, not a
+# stability one: an upstream compromise must never be auto-downloaded.
+# A blanket "pin everything, update mechanically" policy is far easier
+# to review than a per-dependency judgement about which upstreams are
+# trustworthy enough to float.
+#
+# The cost is that nothing here is covered by dependabot, so these go
+# stale silently. Refresh them deliberately with `mise up`, and read the
+# diff.
 [tools]
-python = "3.14"
+python = "3.14.6"
 uv = "0.12.2"
+# Used by `mise run audit`; must match `version:` in the workflow's
+# zizmor job. Bump them together.
+zizmor = "1.29.0"
+# Used by `mise run lint`. actionlint shells out to shellcheck for the
+# `run:` blocks in workflows, and silently skips that half if shellcheck
+# is missing, so it is pinned here too rather than left to the host.
+actionlint = "1.7.12"
+shellcheck = "0.11.0"
 
 [env]
 _.file = { path = ".env", optional = true }
@@ -24,8 +38,8 @@ description = "uv sync (all groups)"
 run = "uv sync --all-groups"
 
 [tasks.lint]
-description = "ruff check + ruff format --check"
-run = ["uv run ruff check .", "uv run ruff format --check ."]
+description = "ruff check + ruff format --check + actionlint"
+run = ["uv run ruff check .", "uv run ruff format --check .", "actionlint"]
 
 [tasks.format]
 description = "ruff format + ruff check --fix"
@@ -43,16 +57,14 @@ run = "uv run pytest"
 description = "Full CI gate"
 depends = ["lint", "typecheck", "test"]
 
-# Local mirror of the `zizmor` CI job. Not part of `ci` because it needs
-# network access and a GitHub token for the online audits.
+# Local mirror of the `zizmor` CI job, using the mise-pinned zizmor. Not
+# part of `ci` because it needs network access and a GitHub token for the
+# online audits.
 #
 # Without a token zizmor silently falls back to offline and skips the
 # `impostor-commit` and `known-vulnerable-actions` audits, which is an
 # unverified result, not a pass — so refuse to run rather than exit 0 on
 # a weaker check than the name promises.
-#
-# The zizmor version here must match `version:` in the workflow's zizmor
-# job; bump them together.
 [tasks.audit]
 description = "zizmor audit of GitHub Actions workflows + dependabot config"
 run = """
@@ -64,25 +76,7 @@ if [ -z "$GH_TOKEN" ]; then
   exit 1
 fi
 export GH_TOKEN
-uvx zizmor@1.29.0 --collect=all --strict-collection .
-"""
-
-# Mutates the GitHub remote. Idempotent: `--force` creates a missing
-# label and updates an existing one. This block is the authoritative
-# definition of the label set; docs/agents/issue-tracker.md describes
-# what the labels mean and points here for names and colours.
-[tasks.labels]
-description = "Create/refresh triage labels on the GitHub remote (mutates the remote)"
-run = """
-set -e
-gh label create bug             -c d73a4a -d "Something isn't working"                        --force
-gh label create documentation   -c 0075ca -d "Improvements or additions to documentation"     --force
-gh label create enhancement     -c a2eeef -d "New feature or request"                         --force
-gh label create needs-triage    -c e6e6fa -d "Maintainer needs to evaluate this issue"        --force
-gh label create needs-info      -c e6e6fa -d "Waiting on reporter for more information"       --force
-gh label create ready-for-agent -c e6e6fa -d "Fully specified, ready for an autonomous agent"  --force
-gh label create ready-for-human -c e6e6fa -d "Requires human implementation"                  --force
-gh label create wontfix         -c ffffff -d "This will not be worked on"                     --force
+zizmor --collect=all --strict-collection .
 """
 
 [tasks.ci-watch]
