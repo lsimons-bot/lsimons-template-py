@@ -45,13 +45,34 @@ depends = ["lint", "typecheck", "test"]
 
 # Local mirror of the `zizmor` CI job. Not part of `ci` because it needs
 # network access and a GitHub token for the online audits.
+#
+# Without a token zizmor silently falls back to offline and skips the
+# `impostor-commit` and `known-vulnerable-actions` audits, which is an
+# unverified result, not a pass — so refuse to run rather than exit 0 on
+# a weaker check than the name promises.
+#
+# The zizmor version here must match `version:` in the workflow's zizmor
+# job; bump them together.
 [tasks.audit]
 description = "zizmor audit of GitHub Actions workflows + dependabot config"
-run = "GH_TOKEN=$(gh auth token 2>/dev/null) uvx zizmor@1.29.0 --collect=all --strict-collection ."
+run = """
+set -e
+GH_TOKEN=$(gh auth token 2>/dev/null) || true
+if [ -z "$GH_TOKEN" ]; then
+  echo "No GitHub token: run \\`gh auth login\\`. Refusing to run a" >&2
+  echo "partial audit — the online audits would be silently skipped." >&2
+  exit 1
+fi
+export GH_TOKEN
+uvx zizmor@1.29.0 --collect=all --strict-collection .
+"""
 
-# Idempotent: `--force` creates a missing label and updates an existing one.
+# Mutates the GitHub remote. Idempotent: `--force` creates a missing
+# label and updates an existing one. This block is the authoritative
+# definition of the label set; docs/agents/issue-tracker.md describes
+# what the labels mean and points here for names and colours.
 [tasks.labels]
-description = "Create/refresh the triage labels documented in docs/agents/issue-tracker.md"
+description = "Create/refresh triage labels on the GitHub remote (mutates the remote)"
 run = """
 set -e
 gh label create bug             -c d73a4a -d "Something isn't working"                        --force

@@ -65,3 +65,11 @@ jobs:
         uses: zizmorcore/zizmor-action@3dc1ecc9bcb9e94e9b2c709687979e1298497054 # v0.6.2
         with:
           advanced-security: false
+          # The action's own defaults are version "latest" and
+          # collect "default". Pin the version so a zizmor release cannot
+          # turn CI red on its own, and set collect: all so
+          # .github/dependabot.yml is audited too. Both must match
+          # `mise run audit` for that task to be a real local mirror —
+          # bump them together.
+          version: "1.29.0"
+          collect: all
