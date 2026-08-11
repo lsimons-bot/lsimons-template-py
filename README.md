@@ -64,7 +64,6 @@ lsimons-template/
 ├── CODE_OF_CONDUCT.md
 ├── CONTRIBUTING.md
 ├── LICENSE                   # Apache-2.0
-├── SECURITY.md               # Vulnerability reporting route
 ├── pyproject.toml            # Project configuration
 ├── uv.lock                   # Committed; never gitignore this
 └── README.md
@@ -97,7 +96,3 @@ See [LICENSE](./LICENSE).
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md). AI agents see
 [AGENTS.md](./AGENTS.md).
-
-## Security
-
-See [SECURITY.md](./SECURITY.md).
