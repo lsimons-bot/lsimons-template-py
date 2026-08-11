@@ -23,11 +23,45 @@ Project template for Python CLI tools with standardized tooling.
    actually is.
 4. Replace the placeholder code in `src/<project>/__init__.py` and
    `tests/test_placeholder.py` with your real implementation.
-5. Run `mise run labels` to create the triage labels used by
-   [docs/agents/issue-tracker.md](./docs/agents/issue-tracker.md); a
-   fresh GitHub repo does not have them.
-6. In the new repo's settings, enable *Require actions to be pinned to a
-   full-length commit SHA* and private vulnerability reporting.
+5. Work through [Per-repo settings](#per-repo-settings) below.
+
+## Per-repo settings
+
+`Use this template` copies **files, not settings**. Everything below is
+repository state that no file in this repo can create or enforce, so a
+new repo starts without it — and this repo may be missing some of it
+too. Check, do not assume:
+
+```bash
+gh label list                                         # triage labels
+gh api repos/{owner}/{repo}/actions/permissions       # sha_pinning_required
+gh api repos/{owner}/{repo}/private-vulnerability-reporting
+gh api repos/{owner}/{repo}/automated-security-fixes
+```
+
+To apply:
+
+```bash
+# Triage labels used by docs/agents/issue-tracker.md. Idempotent.
+mise run labels
+
+# Private vulnerability reporting — SECURITY.md sends reporters here,
+# so without this the documented reporting route does not exist.
+gh api --method PUT repos/{owner}/{repo}/private-vulnerability-reporting
+
+# Dependabot security (vulnerability) updates. .github/dependabot.yml
+# only configures version updates; these are a separate setting.
+gh api --method PUT repos/{owner}/{repo}/automated-security-fixes
+```
+
+*Require actions to be pinned to a full-length commit SHA* has no
+separate REST route — `sha_pinning_required` is a field on the
+`actions/permissions` response, so verify it with the `gh api` GET above
+and set it under **Settings -> Actions -> General**.
+
+Branch protection on `main` requiring the `Lint and test` and
+`Zizmor (GitHub Actions audit)` checks is also worth enabling, and is
+likewise not copied.
 
 ## Included Configuration
 
@@ -60,7 +94,12 @@ lsimons-template/
 ├── tests/                    # Test files
 ├── AGENTS.md                 # AI agent instructions
 ├── CLAUDE.md -> AGENTS.md    # Claude Code compatibility
+├── CODE_OF_CONDUCT.md
+├── CONTRIBUTING.md
+├── LICENSE.md                # Apache-2.0
+├── SECURITY.md               # Vulnerability reporting route
 ├── pyproject.toml            # Project configuration
+├── uv.lock                   # Committed; never gitignore this
 └── README.md
 ```
 

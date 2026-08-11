@@ -10,32 +10,39 @@ You can learn about the `gh` issue CLI with `gh issue --help`.
 
 ## Labels
 
-The following issue labels are used:
+Labels are repository *state*, not repository content: no file in this
+repo can create them, and `Use this template` does not copy them.
+**Always check `gh label list` before relying on a label existing.**
 
-| Label           | Description                                    | Color   |
-| --------------- | ---------------------------------------------- | ------- |
-| bug             | Something isn't working                        | #d73a4a |
-| documentation   | Improvements or additions to documentation     | #0075ca |
-| enhancement     | New feature or request                         | #a2eeef |
-| needs-triage    | Maintainer needs to evaluate this issue        | #e6e6fa |
-| needs-info      | Waiting on reporter for more information       | #e6e6fa |
-| ready-for-agent | Fully specified, ready for an autonomous agent | #e6e6fa |
-| ready-for-human | Requires human implementation                  | #e6e6fa |
-| wontfix         | This will not be worked on                     | #ffffff |
+The `labels` task in `.mise.toml` is the authoritative definition —
+names and colours live there, so that they cannot drift from this file.
+What each label means:
 
-GitHub's default label set does not include the four `needs-*` /
-`ready-*` triage labels, and a repo created from this template starts
-without them. Create or refresh the whole set with:
+| Label           | Use it when                                        |
+| --------------- | -------------------------------------------------- |
+| bug             | Something isn't working                             |
+| documentation   | The change is to documentation                      |
+| enhancement     | New feature or request                              |
+| needs-triage    | A maintainer still has to evaluate this issue       |
+| needs-info      | Blocked waiting on the reporter                     |
+| ready-for-agent | Fully specified; an autonomous agent can pick it up |
+| ready-for-human | Requires human judgement or access to implement     |
+| wontfix         | Deliberately not being worked on                    |
+
+Create or refresh the whole set with:
 
 ```bash
 mise run labels
 ```
 
 That task is idempotent (`gh label create --force`), so it is safe to
-re-run. Check what a repo actually has with `gh label list`.
+re-run, but it mutates the GitHub remote.
 
-Repos created from this template may also carry GitHub's other stock
+**Current state of `lsimons/lsimons-template-py` itself:** `bug`,
+`documentation`, `enhancement` and `wontfix` exist; `needs-triage`,
+`needs-info`, `ready-for-agent` and `ready-for-human` do **not**. Run
+`mise run labels` to fix that. Any repo will also carry GitHub's stock
 labels (`duplicate`, `good first issue`, `help wanted`, `invalid`,
-`question`) and dependabot's (`dependencies`, `github_actions`). Those
-are harmless; the table above is the set this project's workflow
+`question`) and dependabot's (`dependencies`, `github_actions`); those
+are harmless and the table above is the set this project's workflow
 relies on.
