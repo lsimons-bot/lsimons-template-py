@@ -65,11 +65,12 @@ jobs:
         uses: zizmorcore/zizmor-action@3dc1ecc9bcb9e94e9b2c709687979e1298497054 # v0.6.2
         with:
           advanced-security: false
-          # The action's own defaults are version "latest" and
-          # collect "default". Pin the version so a zizmor release cannot
-          # turn CI red on its own, and set collect: all so
-          # .github/dependabot.yml is audited too. Both must match
-          # `mise run audit` for that task to be a real local mirror —
-          # bump them together.
+          # The action defaults to version "latest"; pin it so a zizmor
+          # release cannot turn CI red on its own. Must match the zizmor
+          # in .mise.toml for `mise run audit` to be a real local mirror
+          # — bump them together.
+          #
+          # `collect` is deliberately left at its default, which already
+          # collects every input kind (workflows, actions, dependabot,
+          # pre-commit) while respecting .gitignore.
           version: "1.29.0"
-          collect: all

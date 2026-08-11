@@ -65,6 +65,12 @@ depends = ["lint", "typecheck", "test"]
 # `impostor-commit` and `known-vulnerable-actions` audits, which is an
 # unverified result, not a pass — so refuse to run rather than exit 0 on
 # a weaker check than the name promises.
+#
+# No `--collect`: the default collects every input kind — workflows,
+# actions, dependabot and pre-commit configs — while respecting
+# `.gitignore`. `--collect=all` is the same set of kinds with
+# `.gitignore` ignored, which drags the 300 MB `.venv` in. Naming kinds
+# explicitly would be strictly narrower than the default.
 [tasks.audit]
 description = "zizmor audit of GitHub Actions workflows + dependabot config"
 run = """
@@ -76,7 +82,7 @@ if [ -z "$GH_TOKEN" ]; then
   exit 1
 fi
 export GH_TOKEN
-zizmor --collect=all --strict-collection .
+zizmor --strict-collection .
 """
 
 [tasks.ci-watch]
