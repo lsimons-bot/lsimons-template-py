@@ -41,12 +41,25 @@ _.file = { path = ".env", optional = true }
 description = "Rename this template to a new project (see scripts/init.py)"
 run = "python3 scripts/init.py"
 
+# Unfrozen: this is the task you run while deliberately changing
+# dependencies, so it is allowed to rewrite `uv.lock`. `install-frozen`
+# is the one the gate and CI use.
+#
+# Both exist because a single always-frozen `install` fails in the middle
+# of the one workflow where relocking is the point, and a single unfrozen
+# one lets CI resolve whatever it likes. The split is the same one
+# lsimons-template-doc makes for bun.
+[tasks.install]
+description = "uv sync (all groups); may update uv.lock"
+run = "uv sync --all-groups"
+
 # `--locked` makes a stale lock an error instead of a silent re-resolve.
 # Without it `uv sync` rewrites `uv.lock` whenever it disagrees with
 # `pyproject.toml`, which would let an edited constraint pull in an
 # unreviewed version mid-CI — exactly what committing the lock is meant
-# to prevent. Relock deliberately with `uv lock`, and read the diff.
-[tasks.install]
+# to prevent. Relock deliberately with `uv lock` or `mise run install`,
+# and read the diff.
+[tasks."install-frozen"]
 description = "uv sync (all groups), failing on a stale lock"
 run = "uv sync --all-groups --locked"
 
@@ -105,14 +118,51 @@ zizmor --strict-collection .
 # Unlike `audit` this needs no token and fails loudly when the database
 # is unreachable, so there is no silent-downgrade case to guard against.
 #
-# No `--lockfile`: the default directory scan already finds `uv.lock`
-# while respecting `.gitignore`, which keeps the 300 MB `.venv` out.
+# No `--lockfile`: the directory scan already finds `uv.lock` while
+# respecting `.gitignore`, which keeps the 300 MB `.venv` out.
 # This repo has no runtime dependencies today, so the task is here for
 # derived projects — it starts earning its keep the moment one adds a
 # dependency, and costs a second until then.
+#
+# `-r` is load-bearing, and its absence is silent: `osv-scanner scan
+# source` is NOT recursive by default, so without it the walk stops at
+# the top level. That is harmless while `uv.lock` sits at the root, which
+# is why it was easy to miss here — but this is a template, and the first
+# derived project to put a package in a subdirectory would get "No issues
+# found" over a fraction of its dependencies with nothing saying so.
+# Verified in lsimons-template-mono, where the flagless form silently
+# skipped two of five lockfiles and still exited 0.
+#
+# Because that failure mode is silent, the scan is not trusted on its
+# own: the loop below re-derives the lockfile list from git and fails if
+# the scanner did not report opening every one. A derived project that
+# adds a second package manager then gets a red run rather than a quietly
+# narrower scan — add its lockfile to the glob list when you add it.
 [tasks.vuln]
-description = "osv-scanner audit of uv.lock against the OSV vulnerability database"
-run = "osv-scanner scan source ."
+description = "osv-scanner audit of every committed lockfile against the OSV database"
+run = '''
+set -eu
+status=0
+out=$(osv-scanner scan source -r . 2>&1) || status=$?
+echo "$out"
+
+missing=0
+for lock in $(git ls-files -- '*uv.lock' '*poetry.lock' '*Pipfile.lock'); do
+  case "$out" in
+    *"/$lock file and found"*) ;;
+    *)
+      echo "osv-scanner never opened $lock — its dependencies went unscanned." >&2
+      missing=1
+      ;;
+  esac
+done
+if [ "$missing" -ne 0 ]; then
+  echo "Every committed lockfile must be scanned. Check that osv-scanner" >&2
+  echo "supports its format, and that the -r flag is still present." >&2
+  exit 1
+fi
+exit "$status"
+'''
 
 [tasks.ci-watch]
 description = "Watch GitHub Actions CI for the current branch; exits non-zero on failure"

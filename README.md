@@ -78,14 +78,15 @@ containing the target path.
 ```bash
 mise trust            # once per clone
 mise install          # one-time: pin + install toolchain
-mise run install      # install project deps
+mise run install      # install project deps; may relock
+mise run install-frozen  # install, failing on a stale uv.lock (what CI runs)
 mise run test         # pytest
 mise run lint         # ruff check + format --check + actionlint
 mise run typecheck    # basedpyright
 mise run format       # ruff format + --fix
 mise run ci           # full CI gate
 mise run audit        # zizmor audit of workflows + dependabot config
-mise run vuln         # osv-scanner scan of uv.lock for known CVEs
+mise run vuln         # osv-scanner scan of every committed lockfile
 mise run ci-watch     # watch GitHub Actions for the current branch
 ```
 

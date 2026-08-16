@@ -39,8 +39,11 @@ jobs:
           key: ${{ runner.os }}-uv-${{ hashFiles('uv.lock') }}
           restore-keys: ${{ runner.os }}-uv-
 
+      # The frozen task, not `install`: a pyproject.toml change that
+      # uv.lock does not reflect must fail here rather than be silently
+      # re-resolved on the runner into an unreviewed version set.
       - name: Install
-        run: mise run install
+        run: mise run install-frozen
 
       - name: Lint
         run: mise run lint
@@ -67,8 +70,9 @@ jobs:
           cache: true
 
       # Runs the same mise-pinned osv-scanner as `mise run vuln` locally,
-      # so there is no separate version to keep in step.
-      - name: Scan uv.lock against the OSV database
+      # so there is no separate version to keep in step. The task also
+      # asserts every committed lockfile was actually opened.
+      - name: Scan every committed lockfile against the OSV database
         run: mise run vuln
 
   zizmor:

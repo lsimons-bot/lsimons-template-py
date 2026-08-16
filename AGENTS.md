@@ -17,14 +17,15 @@ Every repo task lives in `.mise.toml`; `mise tasks` lists them.
 | -------------------- | ----------------------------------------------------- |
 | `mise install`       | Install the pinned toolchain                          |
 | `mise run init`      | Rename the `template` placeholder to the project name |
-| `mise run install`   | `uv sync --all-groups --locked`                       |
+| `mise run install`   | `uv sync --all-groups`; may relock                    |
+| `mise run install-frozen` | `uv sync --all-groups --locked`; what CI runs    |
 | `mise run lint`      | `ruff check` + `ruff format --check` + `actionlint`   |
 | `mise run format`    | `ruff format` + `ruff check --fix`                    |
 | `mise run typecheck` | `basedpyright` (strict)                               |
 | `mise run test`      | `pytest` with coverage                                |
 | `mise run ci`        | Full gate: lint + typecheck + test                    |
 | `mise run audit`     | `zizmor` audit of workflows + dependabot config       |
-| `mise run vuln`      | `osv-scanner` scan of `uv.lock` for known CVEs        |
+| `mise run vuln`      | `osv-scanner` scan of every committed lockfile       |
 | `mise run ci-watch`  | Watch GitHub Actions for the current branch           |
 
 ## Structure
@@ -59,6 +60,15 @@ docs/spec/                Feature specifications
 **Supply chain:**
 
 - `uv.lock` is committed and must stay in the tree.
+- CI installs with `install-frozen`, never plain `install`. A
+  `pyproject.toml` change the lock does not reflect must fail the run,
+  not be re-resolved on the runner — a lockfile CI is willing to
+  regenerate is not a pin. Use `mise run install` locally, which is the
+  task you run while deliberately changing dependencies.
+- `mise run vuln` must be clean. It asserts that osv-scanner actually
+  opened every committed lockfile, so adding a second package manager
+  turns the run red until its lockfile is added to the glob list in the
+  task — rather than leaving those dependencies quietly unscanned.
 - GitHub Actions are pinned to full-length commit SHAs with a `# vX.Y.Z`
   comment, and `zizmor` enforces that in CI.
 - Every tool in `.mise.toml` is pinned to an exact version, python
