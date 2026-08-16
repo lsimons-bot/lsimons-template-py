@@ -45,35 +45,25 @@ docs/spec/                Feature specifications
 
 **Code quality:**
 
-- Full type annotations; `basedpyright` strict must report 0 errors.
-- Tests for all functionality; the coverage floor is 80%
-  (`--cov-fail-under=80` in `pyproject.toml`, enforced by `mise run test`).
-- `ruff` for linting and formatting; do not hand-format around it.
-- Do not silence a check without a written justification on the same
-  line — a bare `# noqa` or `# type: ignore` is not acceptable, a
-  narrow `# type: ignore[reportUnknownMemberType]  # <lib> ships no
-  stubs` is. Prefer fixing the cause; suppress when the cause is
-  outside this repo.
-- Never weaken a control to make a check pass: do not lower the
-  coverage floor, unpin an action, or delete a failing test.
+- Full type annotations; `basedpyright` strict at 0 errors.
+- Tests for all functionality; coverage floor 80%.
+- `ruff` for lint and format; do not hand-format around it.
+- No bare `# noqa` or `# type: ignore`. Narrow it and name the reason on
+  the same line. Prefer fixing the cause.
+- Never weaken a control to make a check pass: no lowered coverage floor,
+  no unpinned actions or tools, no deleted tests.
 
 **Supply chain:**
 
 - `uv.lock` is committed and must stay in the tree.
-- CI installs with `install-frozen`, never plain `install`. A
-  `pyproject.toml` change the lock does not reflect must fail the run,
-  not be re-resolved on the runner — a lockfile CI is willing to
-  regenerate is not a pin. Use `mise run install` locally, which is the
-  task you run while deliberately changing dependencies.
-- `mise run vuln` must be clean. It asserts that osv-scanner actually
-  opened every committed lockfile, so adding a second package manager
-  turns the run red until its lockfile is added to the glob list in the
-  task — rather than leaving those dependencies quietly unscanned.
-- GitHub Actions are pinned to full-length commit SHAs with a `# vX.Y.Z`
-  comment, and `zizmor` enforces that in CI.
-- Every tool in `.mise.toml` is pinned to an exact version, python
-  included. Nothing here is covered by dependabot, so refresh it
-  deliberately with `mise up` and read the diff.
+- CI installs with `install-frozen`. Use plain `mise run install` when
+  deliberately changing dependencies.
+- `mise run vuln` must be clean. It also asserts every committed lockfile
+  was scanned, so a new package manager needs adding to the task's glob
+  list.
+- Pin GitHub Actions to full-length commit SHAs; `zizmor` enforces it.
+- Every `.mise.toml` tool is exact-pinned and invisible to dependabot;
+  refresh with `mise up` and read the diff.
 
 ## Commit Message Convention
 
@@ -85,35 +75,11 @@ Follow [Conventional Commits](https://conventionalcommits.org/):
 
 ## Session Completion
 
-Work is NOT complete until every change is committed, pushed, and CI passes.
+Work is not complete until every change is committed, pushed, and CI passes.
 
-1. **Quality gates** (if code changed):
+1. `mise run ci` (or the tasks that changed)
+2. Commit everything — do not leave the working tree dirty
+3. `git pull --rebase && git push`
+4. `mise run ci-watch`; on failure `gh run view --log-failed`, fix, repeat
 
-   ```bash
-   mise run ci
-   ```
-
-2. **Commit**: stage and commit every change from this session. Do not leave the working tree dirty.
-
-   ```bash
-   git status              # review untracked and unstaged files
-   git add <files>
-   git commit -m "<type>(<scope>): <description>"
-   ```
-
-3. **Push**:
-
-   ```bash
-   git pull --rebase && git push
-   git status  # must show "up to date with origin"
-   ```
-
-4. **Verify CI**:
-
-   ```bash
-   mise run ci-watch
-   ```
-
-   On failure, inspect with `gh run view --log-failed`, fix, commit, push, and re-watch.
-
-Never stop before CI is green. If anything fails, resolve and retry.
+Never stop before CI is green.
