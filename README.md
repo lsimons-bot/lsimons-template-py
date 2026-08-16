@@ -85,6 +85,7 @@ mise run typecheck    # basedpyright
 mise run format       # ruff format + --fix
 mise run ci           # full CI gate
 mise run audit        # zizmor audit of workflows + dependabot config
+mise run vuln         # osv-scanner scan of uv.lock for known CVEs
 mise run ci-watch     # watch GitHub Actions for the current branch
 ```
 

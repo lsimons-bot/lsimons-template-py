@@ -29,6 +29,10 @@ zizmor = "1.29.0"
 # is missing, so it is pinned here too rather than left to the host.
 actionlint = "1.7.12"
 shellcheck = "0.11.0"
+# Used by `mise run vuln`. Unlike zizmor there is no second version to
+# keep in step: the CI job runs `mise run vuln` through mise-action, so
+# this pin is the single source of truth for local and CI alike.
+osv-scanner = "2.5.0"
 
 [env]
 _.file = { path = ".env", optional = true }
@@ -37,9 +41,14 @@ _.file = { path = ".env", optional = true }
 description = "Rename this template to a new project (see scripts/init.py)"
 run = "python3 scripts/init.py"
 
+# `--locked` makes a stale lock an error instead of a silent re-resolve.
+# Without it `uv sync` rewrites `uv.lock` whenever it disagrees with
+# `pyproject.toml`, which would let an edited constraint pull in an
+# unreviewed version mid-CI — exactly what committing the lock is meant
+# to prevent. Relock deliberately with `uv lock`, and read the diff.
 [tasks.install]
-description = "uv sync (all groups)"
-run = "uv sync --all-groups"
+description = "uv sync (all groups), failing on a stale lock"
+run = "uv sync --all-groups --locked"
 
 [tasks.lint]
 description = "ruff check + ruff format --check + actionlint"
@@ -88,6 +97,22 @@ fi
 export GH_TOKEN
 zizmor --strict-collection .
 """
+
+# Scans `uv.lock` against the OSV database. Kept out of `ci` for the same
+# reason as `audit`: it needs network access, and `ci` is meant to stay
+# runnable offline. CI enforces it in its own job instead.
+#
+# Unlike `audit` this needs no token and fails loudly when the database
+# is unreachable, so there is no silent-downgrade case to guard against.
+#
+# No `--lockfile`: the default directory scan already finds `uv.lock`
+# while respecting `.gitignore`, which keeps the 300 MB `.venv` out.
+# This repo has no runtime dependencies today, so the task is here for
+# derived projects — it starts earning its keep the moment one adds a
+# dependency, and costs a second until then.
+[tasks.vuln]
+description = "osv-scanner audit of uv.lock against the OSV vulnerability database"
+run = "osv-scanner scan source ."
 
 [tasks.ci-watch]
 description = "Watch GitHub Actions CI for the current branch; exits non-zero on failure"

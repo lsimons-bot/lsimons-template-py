@@ -51,6 +51,26 @@ jobs:
       - name: Test
         run: mise run test
 
+  vuln:
+    name: OSV (dependency vulnerability scan)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up mise
+        uses: jdx/mise-action@3c2e0cf82a5b2e5249f0d3635a4d83d0ae861518 # v4
+        with:
+          install: true
+          cache: true
+
+      # Runs the same mise-pinned osv-scanner as `mise run vuln` locally,
+      # so there is no separate version to keep in step.
+      - name: Scan uv.lock against the OSV database
+        run: mise run vuln
+
   zizmor:
     name: Zizmor (GitHub Actions audit)
     runs-on: ubuntu-latest

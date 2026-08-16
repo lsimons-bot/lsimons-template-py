@@ -17,19 +17,20 @@ Every repo task lives in `.mise.toml`; `mise tasks` lists them.
 | -------------------- | ----------------------------------------------------- |
 | `mise install`       | Install the pinned toolchain                          |
 | `mise run init`      | Rename the `template` placeholder to the project name |
-| `mise run install`   | `uv sync --all-groups`                                |
+| `mise run install`   | `uv sync --all-groups --locked`                       |
 | `mise run lint`      | `ruff check` + `ruff format --check` + `actionlint`   |
 | `mise run format`    | `ruff format` + `ruff check --fix`                    |
 | `mise run typecheck` | `basedpyright` (strict)                               |
 | `mise run test`      | `pytest` with coverage                                |
 | `mise run ci`        | Full gate: lint + typecheck + test                    |
 | `mise run audit`     | `zizmor` audit of workflows + dependabot config       |
+| `mise run vuln`      | `osv-scanner` scan of `uv.lock` for known CVEs        |
 | `mise run ci-watch`  | Watch GitHub Actions for the current branch           |
 
 ## Structure
 
 ```
-.github/workflows/ci.yml  CI: mise run lint/typecheck/test + zizmor audit
+.github/workflows/ci.yml  CI: lint/typecheck/test + osv-scanner + zizmor
 .github/dependabot.yml    Weekly uv + github-actions updates, 7-day cooldown
 .mise.toml                Pinned toolchain + every repo task
 pyproject.toml            Package metadata, ruff, basedpyright, pytest config
