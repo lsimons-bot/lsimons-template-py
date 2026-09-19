@@ -52,10 +52,10 @@ exclude = ["scripts/**", ".venv/**", "**/__pycache__/**"]
 
 [dependency-groups]
 dev = [
-    "pytest>=9.1.1",
-    "pytest-cov>=7.1.0",
-    "ruff>=0.16.2",
-    "basedpyright>=1.39.9",
+    "pytest==9.1.1",
+    "pytest-cov==7.1.0",
+    "ruff==0.16.7",
+    "basedpyright==1.40.1",
 ]
 
 [tool.pytest.ini_options]
