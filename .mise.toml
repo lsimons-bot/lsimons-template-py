@@ -20,11 +20,11 @@ lockfile = true
 # above), so read the diff of those PRs like any other.
 [tools]
 python = "3.15.2"
-uv = "0.13.6"
+uv = "0.13.7"
 # Used by `mise run audit`; must match `version:` in the workflow's
 # zizmor job. Renovate bumps both (mise manager here, github-actions
 # manager there); check that they still match when reviewing its PR.
-zizmor = "1.31.1"
+zizmor = "1.32.0"
 # Used by `mise run lint`. actionlint shells out to shellcheck for the
 # `run:` blocks in workflows, and silently skips that half if shellcheck
 # is missing, so it is pinned here too rather than left to the host.
@@ -50,7 +50,7 @@ shellcheck = "0.11.0"
 #
 # Renovate's mise manager bumps `version` in this inline table, but not
 # the signer identity: that stays a manual check, as described above.
-osv-scanner = { version = "2.7.0", slsa_signer_identity = "https://github.com/slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@refs/tags/v2.1.0", slsa_signer_issuer = "https://token.actions.githubusercontent.com" }
+osv-scanner = { version = "2.7.1", slsa_signer_identity = "https://github.com/slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@refs/tags/v2.1.0", slsa_signer_issuer = "https://token.actions.githubusercontent.com" }
 
 [env]
 _.file = { path = ".env", optional = true }
