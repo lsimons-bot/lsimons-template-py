@@ -20,7 +20,7 @@ lockfile = true
 # above), so read the diff of those PRs like any other.
 [tools]
 python = "3.15.2"
-uv = "0.13.7"
+uv = "0.13.8"
 # Used by `mise run audit`; must match `version:` in the workflow's
 # zizmor job. Renovate bumps both (mise manager here, github-actions
 # manager there); check that they still match when reviewing its PR.
